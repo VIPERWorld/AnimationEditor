@@ -1,8 +1,10 @@
-#include <QCoreApplication>
+#include <QApplication>
+#include "AnimationEditor.h"
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
-
+    QApplication a(argc, argv);
+    AnimationEditor editor;
+    editor.show();
     return a.exec();
 }

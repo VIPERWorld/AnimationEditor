@@ -1,5 +1,4 @@
-QT += core
-QT -= gui
+QT += core widgets gui
 
 CONFIG += c++11
 
@@ -8,8 +7,10 @@ CONFIG += console
 CONFIG -= app_bundle
 
 TEMPLATE = app
+SOURCES += \
+    src/main.cpp \
+    src/AnimationEditor.cpp
 
-INCLUDEPATH += -/include
-SOURCES += src/main.cpp
-
-HEADERS +=
+HEADERS += \
+    src/AnimationEditor.h \
+    src/Animation.h
