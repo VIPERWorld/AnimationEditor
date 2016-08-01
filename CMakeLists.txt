@@ -13,7 +13,6 @@ include_directories(${Qt5Xml_INCLUDES})
 set(SOURCE_FILES
         AnimationEditor/main.cpp
         AnimationEditor/AnimationEditor.cpp
-        AnimationEditor/DocumentServices/XMLDocumentService.cpp
         )
 
 add_executable(AnimationEditor ${SOURCE_FILES})

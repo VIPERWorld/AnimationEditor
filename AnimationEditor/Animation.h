@@ -28,6 +28,7 @@ public:
     void setAnimationName(QString animationName) { m_animationName = animationName; }
     const QString &getAnimationName() const { return m_animationName; }
 
+    const QVector<AnimationFrame> &getFrames() const { return m_animationFrames; }
     void addFrame(AnimationFrame newFrame) { m_animationFrames.push_back(newFrame); }
 
     const AnimationFrame &getFrame(QString frameName)
