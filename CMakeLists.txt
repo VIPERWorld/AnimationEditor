@@ -9,10 +9,12 @@ find_package(Qt5Widgets REQUIRED)
 include_directories(${Qt5Widgets_INCLUDES})
 
 set(SOURCE_FILES
-        src/main.cpp
-        src/AEPDocumentService.cpp
-        src/AnimationEditor.cpp
-        src/JSONDocumentService.cpp
-        src/XMLDocumentService.cpp)
+        AnimationEditor/main.cpp
+        AnimationEditor/AEPDocumentService.cpp
+        AnimationEditor/AnimationEditor.cpp
+        AnimationEditor/JSONDocumentService.cpp
+        AnimationEditor/XMLDocumentService.cpp
+        )
+
 add_executable(AnimationEditor ${SOURCE_FILES})
 qt5_use_modules(AnimationEditor Widgets)
