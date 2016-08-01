@@ -1,6 +1,6 @@
 #ifndef JSONDOCUMENTWRITER_H
 #define JSONDOCUMENTWRITER_H
-#include "DocumentService.h"
+#include "../DocumentService.h"
 
 class JSONDocumentWriter : virtual public DocumentWriter
 {

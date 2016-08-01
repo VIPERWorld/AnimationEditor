@@ -3,9 +3,9 @@
 #include <QDesktopWidget>
 #include <QMenuBar>
 #include <QFileDialog>
-#include "XMLDocumentService.h"
-#include "JSONDocumentService.h"
-#include "AEPDocumentService.h"
+#include "DocumentServices/XMLDocumentService.h"
+#include "DocumentServices/JSONDocumentService.h"
+#include "DocumentServices/AEPDocumentService.h"
 #include "Animation.h"
 #include <iostream>
 

@@ -1,6 +1,6 @@
 #ifndef XMLDOCUMENTSERVICE_H
 #define XMLDOCUMENTSERVICE_H
-#include "DocumentService.h"
+#include "../DocumentService.h"
 
 class XMLDocumentWriter : virtual public DocumentWriter
 {
