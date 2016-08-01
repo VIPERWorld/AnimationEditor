@@ -9,7 +9,7 @@ class DocumentWriter
 public:
     DocumentWriter() { }
     virtual ~DocumentWriter() { }
-    virtual void writeToFile(QString documentPath, std::vector<Animation> &animations) = 0;
+    virtual void writeToFile(QString documentPath, QVector<Animation> &animations) = 0;
 };
 
 class DocumentReader
@@ -17,7 +17,7 @@ class DocumentReader
 public:
     DocumentReader() { }
     virtual ~DocumentReader() { }
-    virtual std::vector<Animation> readFromFile(QString documentPath) = 0;
+    virtual QVector<Animation> readFromFile(QString documentPath) = 0;
 };
 
 #endif // DOCUMENTWRITER_H

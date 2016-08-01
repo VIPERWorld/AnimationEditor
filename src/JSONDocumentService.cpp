@@ -1,11 +1,11 @@
 #include "JSONDocumentService.h"
 
-void JSONDocumentWriter::writeToFile(QString documentPath, std::vector<Animation> &animations)
+void JSONDocumentWriter::writeToFile(QString documentPath, QVector<Animation> &animations)
 {
 
 }
 
-std::vector<Animation> JSONDocumentReader::readFromFile(QString documentPath)
+QVector<Animation> JSONDocumentReader::readFromFile(QString documentPath)
 {
 
 }

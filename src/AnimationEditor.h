@@ -33,12 +33,15 @@ public slots:
     void exportToJSON();
 private:
     void enableWidgets(bool);
-    void setDocumentWriter(DocumentWriter *writer);
+    //Document writer strategy
     std::unique_ptr<DocumentWriter> m_documentWriter{nullptr};
+    void setDocumentWriter(DocumentWriter *writer);
+
+    //Document
     QString m_actualDocumentPath;
     QString m_exportedPath;
 
-
+    //File menu section
     QMenu   *fileMenu               {nullptr};
     QAction *newProjectAction       {nullptr};
     QAction *openProjectAction      {nullptr};
@@ -52,15 +55,16 @@ private:
 
     QGridLayout *editorLayout{nullptr};
 
-    std::vector<Animation> m_animations;
+    //Animations
+    QVector<Animation> m_animations;
+    Animation* m_actualAnimation{nullptr};
     QListWidget *animationsView{nullptr};
     QLabel *animationsLabel  {nullptr};
     QPushButton *newAnimationButton{nullptr};
     QPushButton *deleteAnimationButton{nullptr};
-
+    //Frames
     QListWidget *animationFramesView  {nullptr};
-    QGraphicsScene *animationPreview{nullptr};
-
+    //Frame variables
     QSpinBox  *XSpin        {nullptr};
     QSpinBox  *YSpin        {nullptr};
     QSpinBox  *WidthSpin    {nullptr};

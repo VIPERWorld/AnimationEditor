@@ -1,2 +1,4 @@
 AnimationEditor.pro.*
 *.autosave
+.idea
+*_automoc*

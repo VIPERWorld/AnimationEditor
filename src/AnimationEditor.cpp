@@ -5,6 +5,9 @@
 #include <QFileDialog>
 #include "XMLDocumentService.h"
 #include "JSONDocumentService.h"
+#include "AEPDocumentService.h"
+#include "Animation.h"
+
 
 AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
 {
@@ -27,6 +30,7 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     saveProjectAction = new QAction(fileMenu);
     saveProjectAction->setText("Save");
     connect(saveProjectAction, SIGNAL(triggered(bool)), this, SLOT(saveProject()));
+    saveProjectAction->setEnabled(false);
 
     //Re-Export project to last used format
     reExportAction = new QAction(fileMenu);
@@ -109,6 +113,7 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
 
     //Disable widgets
     enableWidgets(false);
+    m_animations.clear();
 }
 
 void AnimationEditor::enableWidgets(bool boolean)
@@ -116,6 +121,7 @@ void AnimationEditor::enableWidgets(bool boolean)
     animationsView->setEnabled(boolean);
     newAnimationButton->setEnabled(boolean);
     deleteAnimationButton->setEnabled(boolean);
+    saveProjectAction->setEnabled(boolean);
 }
 
 void AnimationEditor::setDocumentWriter(DocumentWriter *writer)
@@ -126,39 +132,60 @@ void AnimationEditor::setDocumentWriter(DocumentWriter *writer)
 
 void AnimationEditor::createNewProject()
 {
-    m_actualDocumentPath = QFileDialog::getSaveFileName(this,
+   auto newDocumentPath = QFileDialog::getSaveFileName(this,
     tr("Create Project"), "", tr("Animation Editor Project (*.aep)"));
 
-    if(!m_actualDocumentPath.isEmpty())
+    if(!newDocumentPath.isEmpty())
     {
+        m_actualDocumentPath = newDocumentPath;
         QFile projectFile(m_actualDocumentPath + ".aep");
         if(projectFile.open(QIODevice::WriteOnly))
         {
             enableWidgets(true);
             m_animations.clear();
-            m_documentWriter.reset();
+            m_documentWriter.reset(); 
         }
     }
 }
 
 void AnimationEditor::openProject()
 {
+    auto newDocumentPath = QFileDialog::getOpenFileName(this,
+     tr("Open Project"), "", tr("Animation Editor Project (*.aep)"));
 
+     if(!newDocumentPath.isEmpty())
+     {
+         m_actualDocumentPath = newDocumentPath;
+         //Create aep reader
+         auto aepReader = AEPDocumentReader();
+         //Read animations from file
+         //TODO m_animations = aepReader.readFromFile(m_actualDocumentPath);
+         //Enable widgets
+         enableWidgets(true);
+         //Set writer to nullptr
+         m_documentWriter.reset();
+     }
 }
 
 void AnimationEditor::saveProject()
 {
-
+    auto aepWriter = AEPDocumentWriter();
+    aepWriter.writeToFile(m_actualDocumentPath, m_animations);
 }
 
 void AnimationEditor::newAnimation()
 {
-
+    m_animations.append(Animation());
+    //Clear animations
+    animationsView->clear();
+    for(auto const &animation : m_animations)
+        animationsView->addItem(animation.getAnimationName());
 }
 
 void AnimationEditor::deleteAnimation()
 {
-
+   // if(m_actualAnimation)
+     //   m_animations.erase(m_actualAnimation);
 }
 
 void AnimationEditor::reExportDocument()
