@@ -26,7 +26,6 @@ public slots:
     void saveProject();
     void newAnimation();
     void deleteAnimation();
-    void reExportDocument();
     void moveAnimationUp();
     void moveAnimationDown();
 private:

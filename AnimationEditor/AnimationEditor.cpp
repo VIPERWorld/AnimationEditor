@@ -1,19 +1,16 @@
 #include "AnimationEditor.h"
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QMenuBar>
 #include <QFileDialog>
+#include <QtWidgets/QInputDialog>
 #include "DocumentServices/XMLDocumentService.h"
 #include "DocumentServices/JSONDocumentService.h"
 #include "DocumentServices/AEPDocumentService.h"
-#include "Animation.h"
-#include <iostream>
 
 
 AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
 {
     QMainWindow::setWindowTitle("AnimationEditor");
-
     //Menu bar
     //File section
     fileMenu = menuBar()->addMenu("File");
@@ -36,7 +33,7 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     //Re-Export project to last used format
     reExportAction = new QAction(fileMenu);
     reExportAction->setText("Re-Export");
-    connect(reExportAction, &QAction::triggered, this, &AnimationEditor::reExportDocument);
+    connect(reExportAction, &QAction::triggered, this, [this]() { m_documentWriter->writeToFile(m_exportedPath, m_animations); });
     //Enable after opening/creating
     reExportAction->setEnabled(false);
 
@@ -44,26 +41,44 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     //Import from .XML
     importFromXMLAction = new QAction(fileMenu);
     importFromXMLAction->setText("Import from .XML");
-    connect(importFromXMLAction, &QAction::triggered, this, [](){ });
+    connect(importFromXMLAction, &QAction::triggered, this, [this] ()
+    {
+        XMLDocumentReader xmlReader;
+        m_animations = xmlReader.readFromFile(m_actualDocumentPath);
+    });
     importFromXMLAction->setEnabled(false);
 
     //Import from .JSON
     importFromJSONAction = new QAction(fileMenu);
     importFromJSONAction->setText("Import from .JSON");
-    connect(importFromJSONAction, &QAction::triggered, this, [](){ });
+    connect(importFromJSONAction, &QAction::triggered, this, [this] ()
+    {
+        JSONDocumentReader jsonReader;
+        m_animations = jsonReader.readFromFile(m_actualDocumentPath);
+    });
     importFromJSONAction->setEnabled(false);
 
     //Exporting
     //Export to .XML
     exportToXMLAction = new QAction(fileMenu);
     exportToXMLAction->setText("Export To .XML");
-    connect(exportToXMLAction, &QAction::triggered, this, [](){ });
+    connect(exportToXMLAction, &QAction::triggered, this, [this]()
+    {
+        setDocumentWriter(new XMLDocumentWriter);
+        reExportAction->setEnabled(true);
+        m_documentWriter->writeToFile(m_exportedPath, m_animations);
+    });
     exportToXMLAction->setEnabled(false);
 
     //Export to .JSON
     exportToJSONAction = new QAction(fileMenu);
     exportToJSONAction->setText("Export To .JSON");
-    connect(exportToJSONAction, &QAction::triggered, this, [](){ });
+    connect(exportToJSONAction, &QAction::triggered, this, [this]()
+    {
+        setDocumentWriter(new JSONDocumentWriter);
+        reExportAction->setEnabled(true);
+        m_documentWriter->writeToFile(m_exportedPath, m_animations);
+    });
     exportToJSONAction->setEnabled(false);
 
     //Exit app
@@ -91,7 +106,19 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     editorLayout = new QGridLayout(this);
     //Animations list
     animationsView = new QListWidget(this);
-    connect(animationsView, &QListWidget::currentRowChanged, this, [&](int index){ m_animationIndex = index; });
+    connect(animationsView, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem *item)
+    {
+        bool ok;
+        QString text = QInputDialog::getText(this, tr("Set new animation name"),
+                                             tr("New animation name"), QLineEdit::Normal,
+                                             QDir::home().dirName(), &ok);
+        if (ok && !text.isEmpty())
+        {
+            m_animations[m_animationIndex].setAnimationName(text);
+            updateAnimationsView();
+        }
+    });
+    connect(animationsView, &QListWidget::currentRowChanged, this, [this](int index){ m_animationIndex = index; });
     //'Animations' label
     animationsLabel = new QLabel("Animations", this);
     animationsLabel->setAlignment(Qt::AlignCenter);
@@ -136,6 +163,10 @@ void AnimationEditor::enableWidgets(bool boolean)
     saveProjectAction->setEnabled(boolean);
     upAnimationButton->setEnabled(boolean);
     downAnimationButton->setEnabled(boolean);
+    importFromJSONAction->setEnabled(boolean);
+    importFromXMLAction->setEnabled(boolean);
+    exportToJSONAction->setEnabled(boolean);
+    exportToXMLAction->setEnabled(boolean);
 }
 
 void AnimationEditor::setDocumentWriter(DocumentWriter *writer)
@@ -151,11 +182,16 @@ void AnimationEditor::createNewProject()
 
     if(!newDocumentPath.isEmpty())
     {
-        m_actualDocumentPath = newDocumentPath;
-        QFile projectFile(m_actualDocumentPath + ".aep");
+        m_actualDocumentPath = newDocumentPath + ".aep";
+        QFile projectFile(m_actualDocumentPath);
         if(projectFile.open(QIODevice::WriteOnly))
         {
             enableWidgets(true);
+            reExportAction->setEnabled(false);
+            exportToJSONAction->setEnabled(false);
+            exportToXMLAction->setEnabled(false);
+            m_animationIndex = -1;
+            animationsView->clear();
             m_animations.clear();
             m_documentWriter.reset(); 
         }
@@ -173,11 +209,16 @@ void AnimationEditor::openProject()
          //Create aep reader
          auto aepReader = AEPDocumentReader();
          //Read animations from file
-         //TODO m_animations = aepReader.readFromFile(m_actualDocumentPath);
+         m_animations = aepReader.readFromFile(m_actualDocumentPath);
          //Enable widgets
          enableWidgets(true);
+         reExportAction->setEnabled(false);
+         exportToJSONAction->setEnabled(false);
+         exportToXMLAction->setEnabled(false);
+         m_animationIndex = -1;
          //Set writer to nullptr
          m_documentWriter.reset();
+         updateAnimationsView();
      }
 }
 
@@ -191,8 +232,7 @@ void AnimationEditor::saveProject()
 void AnimationEditor::newAnimation()
 {
     m_animations.append(Animation());
-    static int counter = 1;
-    m_animations.back().setAnimationName("Animation" + counter++);
+    m_animations.back().setAnimationName("Animation");
     updateAnimationsView();
 }
 
@@ -204,18 +244,12 @@ void AnimationEditor::deleteAnimation()
     m_animationIndex = -1;
 }
 
-void AnimationEditor::reExportDocument()
-{
-    //TODO EXCEPTIONS
-    m_documentWriter->writeToFile(m_exportedPath, m_animations);
-}
-
 void AnimationEditor::moveAnimationUp()
 {
     if(m_animationIndex > 0)
         m_animations.move(m_animationIndex--, m_animationIndex - 1);
 
-    auto backupIndex = m_animationIndex;
+    const int backupIndex = m_animationIndex;
     updateAnimationsView();
     animationsView->setCurrentRow(backupIndex, QItemSelectionModel::Select);
 }
@@ -225,14 +259,13 @@ void AnimationEditor::moveAnimationDown()
     if(m_animationIndex != -1 && m_animationIndex < m_animations.size() - 1)
         m_animations.move(m_animationIndex++, m_animationIndex + 1);
 
-    auto backupIndex = m_animationIndex;
+    const int backupIndex = m_animationIndex;
     updateAnimationsView();
     animationsView->setCurrentRow(backupIndex, QItemSelectionModel::Select);
 }
 
 void AnimationEditor::updateAnimationsView()
 {
-    //Clear animations
     animationsView->clear();
     for(auto const &animation : m_animations)
         animationsView->addItem(animation.getAnimationName());
