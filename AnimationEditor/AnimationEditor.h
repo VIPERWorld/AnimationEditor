@@ -27,10 +27,8 @@ public slots:
     void newAnimation();
     void deleteAnimation();
     void reExportDocument();
-    void importFromXML();
-    void importFromJSON();
-    void exportToXML();
-    void exportToJSON();
+    void moveAnimationUp();
+    void moveAnimationDown();
 private:
     void enableWidgets(bool);
     //Document writer strategy
@@ -57,11 +55,14 @@ private:
 
     //Animations
     QVector<Animation> m_animations;
-    Animation* m_actualAnimation{nullptr};
+    int m_animationIndex{-1};
     QListWidget *animationsView{nullptr};
+    void updateAnimationsView();
     QLabel *animationsLabel  {nullptr};
     QPushButton *newAnimationButton{nullptr};
     QPushButton *deleteAnimationButton{nullptr};
+    QPushButton *upAnimationButton{nullptr};
+    QPushButton *downAnimationButton{nullptr};
     //Frames
     QListWidget *animationFramesView  {nullptr};
     //Frame variables

@@ -7,6 +7,7 @@
 #include "JSONDocumentService.h"
 #include "AEPDocumentService.h"
 #include "Animation.h"
+#include <iostream>
 
 
 AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
@@ -19,23 +20,23 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     //New document
     newProjectAction = new QAction(fileMenu);
     newProjectAction->setText("New");
-    connect(newProjectAction, SIGNAL(triggered(bool)), this, SLOT(createNewProject()));
+    connect(newProjectAction, &QAction::triggered, this, &AnimationEditor::createNewProject);
 
     //Open document
     openProjectAction = new QAction(fileMenu);
     openProjectAction->setText("Open");
-    connect(openProjectAction, SIGNAL(triggered(bool)), this, SLOT(openProject()));
+    connect(openProjectAction, &QAction::triggered, this, &AnimationEditor::openProject);
 
     //Save document
     saveProjectAction = new QAction(fileMenu);
     saveProjectAction->setText("Save");
-    connect(saveProjectAction, SIGNAL(triggered(bool)), this, SLOT(saveProject()));
+    connect(saveProjectAction, &QAction::triggered, this, &AnimationEditor::saveProject);
     saveProjectAction->setEnabled(false);
 
     //Re-Export project to last used format
     reExportAction = new QAction(fileMenu);
     reExportAction->setText("Re-Export");
-    connect(reExportAction, SIGNAL(triggered(bool)), this, SLOT(reExportDocument()));
+    connect(reExportAction, &QAction::triggered, this, &AnimationEditor::reExportDocument);
     //Enable after opening/creating
     reExportAction->setEnabled(false);
 
@@ -43,32 +44,32 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     //Import from .XML
     importFromXMLAction = new QAction(fileMenu);
     importFromXMLAction->setText("Import from .XML");
-    connect(importFromXMLAction, SIGNAL(triggered(bool)), this, SLOT(importFromXML()));
+    connect(importFromXMLAction, &QAction::triggered, this, [](){ });
     importFromXMLAction->setEnabled(false);
 
     //Import from .JSON
     importFromJSONAction = new QAction(fileMenu);
     importFromJSONAction->setText("Import from .JSON");
-    connect(importFromJSONAction, SIGNAL(triggered(bool)), this, SLOT(importFromJSON()));
+    connect(importFromJSONAction, &QAction::triggered, this, [](){ });
     importFromJSONAction->setEnabled(false);
 
     //Exporting
     //Export to .XML
     exportToXMLAction = new QAction(fileMenu);
     exportToXMLAction->setText("Export To .XML");
-    connect(exportToXMLAction, SIGNAL(triggered(bool)), this, SLOT(exportToXML()));
+    connect(exportToXMLAction, &QAction::triggered, this, [](){ });
     exportToXMLAction->setEnabled(false);
 
     //Export to .JSON
     exportToJSONAction = new QAction(fileMenu);
     exportToJSONAction->setText("Export To .JSON");
-    connect(exportToJSONAction, SIGNAL(triggered(bool)), this, SLOT(exportToJSON()));
+    connect(exportToJSONAction, &QAction::triggered, this, [](){ });
     exportToJSONAction->setEnabled(false);
 
     //Exit app
     exitAction = new QAction(fileMenu);
     exitAction->setText("Exit");
-    connect(exitAction, SIGNAL(triggered(bool)), this, SLOT(close()));
+    connect(exitAction, &QAction::triggered, this, &AnimationEditor::close);
 
     //Pack actions into QList
     QList<QAction*> fileActions;
@@ -90,21 +91,32 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     editorLayout = new QGridLayout(this);
     //Animations list
     animationsView = new QListWidget(this);
+    connect(animationsView, &QListWidget::currentRowChanged, this, [&](int index){ m_animationIndex = index; });
     //'Animations' label
     animationsLabel = new QLabel("Animations", this);
     animationsLabel->setAlignment(Qt::AlignCenter);
     //New Animation button
     newAnimationButton = new QPushButton("New", this);
-    connect(newAnimationButton, SIGNAL(released()), this, SLOT(newAnimation()));
+    connect(newAnimationButton, &QPushButton::released, this, &AnimationEditor::newAnimation);
     //Delete Animation button
     deleteAnimationButton = new QPushButton("Delete", this);
-    connect(deleteAnimationButton, SIGNAL(released()), this, SLOT(deleteAnimation()));
+    connect(deleteAnimationButton, &QPushButton::released, this, &AnimationEditor::deleteAnimation);
+    //Up animation button
+    upAnimationButton = new QPushButton("Up", this);
+    connect(upAnimationButton, &QPushButton::released, this, &AnimationEditor::moveAnimationUp);
+    upAnimationButton->setEnabled(false);
+    //Down animation button
+    downAnimationButton = new QPushButton(QString("Down"), this);
+    connect(downAnimationButton, &QPushButton::released, this, &AnimationEditor::moveAnimationDown);
+    downAnimationButton->setEnabled(false);
 
     //Place widgets into layout
-    editorLayout->addWidget(animationsLabel, 0, 0, 1, 2);
-    editorLayout->addWidget(animationsView, 1, 0, 1, 2);
-    editorLayout->addWidget(newAnimationButton, 2, 0);
-    editorLayout->addWidget(deleteAnimationButton, 2, 1);
+    editorLayout->addWidget(animationsLabel, 0, 0, 1, 6);
+    editorLayout->addWidget(animationsView, 1, 0, 1, 6);
+    editorLayout->addWidget(newAnimationButton, 2, 0, 1, 2);
+    editorLayout->addWidget(upAnimationButton, 2, 2, 1, 1);
+    editorLayout->addWidget(downAnimationButton, 2, 3, 1, 1);
+    editorLayout->addWidget(deleteAnimationButton, 2, 4, 1, 2);
 
     //Create widget -> apply layout -> set as central widget of main window
     QWidget *editor = new QWidget(this);
@@ -122,6 +134,8 @@ void AnimationEditor::enableWidgets(bool boolean)
     newAnimationButton->setEnabled(boolean);
     deleteAnimationButton->setEnabled(boolean);
     saveProjectAction->setEnabled(boolean);
+    upAnimationButton->setEnabled(boolean);
+    downAnimationButton->setEnabled(boolean);
 }
 
 void AnimationEditor::setDocumentWriter(DocumentWriter *writer)
@@ -173,19 +187,21 @@ void AnimationEditor::saveProject()
     aepWriter.writeToFile(m_actualDocumentPath, m_animations);
 }
 
+
 void AnimationEditor::newAnimation()
 {
     m_animations.append(Animation());
-    //Clear animations
-    animationsView->clear();
-    for(auto const &animation : m_animations)
-        animationsView->addItem(animation.getAnimationName());
+    static int counter = 1;
+    m_animations.back().setAnimationName("Animation" + counter++);
+    updateAnimationsView();
 }
 
 void AnimationEditor::deleteAnimation()
 {
-   // if(m_actualAnimation)
-     //   m_animations.erase(m_actualAnimation);
+   if(m_animationIndex != -1)
+       m_animations.erase(m_animations.begin() + m_animationIndex);
+    updateAnimationsView();
+    m_animationIndex = -1;
 }
 
 void AnimationEditor::reExportDocument()
@@ -194,24 +210,30 @@ void AnimationEditor::reExportDocument()
     m_documentWriter->writeToFile(m_exportedPath, m_animations);
 }
 
-void AnimationEditor::importFromXML()
+void AnimationEditor::moveAnimationUp()
 {
+    if(m_animationIndex > 0)
+        m_animations.move(m_animationIndex--, m_animationIndex - 1);
 
+    auto backupIndex = m_animationIndex;
+    updateAnimationsView();
+    animationsView->setCurrentRow(backupIndex, QItemSelectionModel::Select);
 }
 
-void AnimationEditor::importFromJSON()
+void AnimationEditor::moveAnimationDown()
 {
+    if(m_animationIndex != -1 && m_animationIndex < m_animations.size() - 1)
+        m_animations.move(m_animationIndex++, m_animationIndex + 1);
 
+    auto backupIndex = m_animationIndex;
+    updateAnimationsView();
+    animationsView->setCurrentRow(backupIndex, QItemSelectionModel::Select);
 }
 
-void AnimationEditor::exportToXML()
+void AnimationEditor::updateAnimationsView()
 {
-    setDocumentWriter(new XMLDocumentWriter());
-    reExportDocument();
-}
-
-void AnimationEditor::exportToJSON()
-{
-    setDocumentWriter(new JSONDocumentWriter());
-    reExportDocument();
+    //Clear animations
+    animationsView->clear();
+    for(auto const &animation : m_animations)
+        animationsView->addItem(animation.getAnimationName());
 }
