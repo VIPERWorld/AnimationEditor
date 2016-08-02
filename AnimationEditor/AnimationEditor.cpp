@@ -43,8 +43,14 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     importFromXMLAction->setText("Import from .XML");
     connect(importFromXMLAction, &QAction::triggered, this, [this] ()
     {
-        XMLDocumentReader xmlReader;
-        m_animations = xmlReader.readFromFile(m_actualDocumentPath);
+        auto importPath = QFileDialog::getOpenFileName(this,
+                                                            tr("Choose .xml file which you want to import"), "", tr("XML document (*.xml)"));
+        if(!importPath.isEmpty())
+        {
+            XMLDocumentReader xmlReader;
+            m_animations = xmlReader.readFromFile(importPath);
+            updateAnimationsView();
+        }
     });
     importFromXMLAction->setEnabled(false);
 
@@ -53,8 +59,14 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     importFromJSONAction->setText("Import from .JSON");
     connect(importFromJSONAction, &QAction::triggered, this, [this] ()
     {
-        JSONDocumentReader jsonReader;
-        m_animations = jsonReader.readFromFile(m_actualDocumentPath);
+        auto importPath = QFileDialog::getOpenFileName(this,
+                                                       tr("Choose .json file which you want to import"), "", tr("JSON document (*.json)"));
+        if(!importPath.isEmpty())
+        {
+            JSONDocumentReader jsonReader;
+            m_animations = jsonReader.readFromFile(importPath);
+            updateAnimationsView();
+        }
     });
     importFromJSONAction->setEnabled(false);
 
@@ -64,9 +76,15 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     exportToXMLAction->setText("Export To .XML");
     connect(exportToXMLAction, &QAction::triggered, this, [this]()
     {
-        setDocumentWriter(new XMLDocumentWriter);
-        reExportAction->setEnabled(true);
-        m_documentWriter->writeToFile(m_exportedPath, m_animations);
+        auto newExportPath = QFileDialog::getSaveFileName(this,
+                                                            tr("Where to save document"), "", tr("XML document (*.xml)"));
+        if(!newExportPath.isEmpty())
+        {
+            m_exportedPath = newExportPath + ".xml";
+            setDocumentWriter(new XMLDocumentWriter);
+            reExportAction->setEnabled(true);
+            m_documentWriter->writeToFile(m_exportedPath, m_animations);
+        }
     });
     exportToXMLAction->setEnabled(false);
 
@@ -75,9 +93,15 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     exportToJSONAction->setText("Export To .JSON");
     connect(exportToJSONAction, &QAction::triggered, this, [this]()
     {
-        setDocumentWriter(new JSONDocumentWriter);
-        reExportAction->setEnabled(true);
-        m_documentWriter->writeToFile(m_exportedPath, m_animations);
+        auto newExportPath = QFileDialog::getSaveFileName(this,
+                                                          tr("Where to save document"), "", tr("JSON document (*.json)"));
+        if(!newExportPath.isEmpty())
+        {
+            m_exportedPath = newExportPath + ".json";
+            setDocumentWriter(new JSONDocumentWriter);
+            reExportAction->setEnabled(true);
+            m_documentWriter->writeToFile(m_exportedPath, m_animations);
+        }
     });
     exportToJSONAction->setEnabled(false);
 
@@ -188,8 +212,6 @@ void AnimationEditor::createNewProject()
         {
             enableWidgets(true);
             reExportAction->setEnabled(false);
-            exportToJSONAction->setEnabled(false);
-            exportToXMLAction->setEnabled(false);
             m_animationIndex = -1;
             animationsView->clear();
             m_animations.clear();
@@ -213,8 +235,6 @@ void AnimationEditor::openProject()
          //Enable widgets
          enableWidgets(true);
          reExportAction->setEnabled(false);
-         exportToJSONAction->setEnabled(false);
-         exportToXMLAction->setEnabled(false);
          m_animationIndex = -1;
          //Set writer to nullptr
          m_documentWriter.reset();
