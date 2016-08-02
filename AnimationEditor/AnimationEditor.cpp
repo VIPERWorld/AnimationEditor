@@ -77,7 +77,7 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     connect(exportToXMLAction, &QAction::triggered, this, [this]()
     {
         auto newExportPath = QFileDialog::getSaveFileName(this,
-                                                            tr("Where to save document"), "", tr("XML document (*.xml)"));
+                                                            tr("Where to save document"), "", tr("XML document (*.xml)")).section(".",0,0);
         if(!newExportPath.isEmpty())
         {
             m_exportedPath = newExportPath + ".xml";
@@ -94,7 +94,7 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     connect(exportToJSONAction, &QAction::triggered, this, [this]()
     {
         auto newExportPath = QFileDialog::getSaveFileName(this,
-                                                          tr("Where to save document"), "", tr("JSON document (*.json)"));
+                                                          tr("Where to save document"), "", tr("JSON document (*.json)")).section(".",0,0);
         if(!newExportPath.isEmpty())
         {
             m_exportedPath = newExportPath + ".json";
@@ -202,7 +202,7 @@ void AnimationEditor::setDocumentWriter(DocumentWriter *writer)
 void AnimationEditor::createNewProject()
 {
    auto newDocumentPath = QFileDialog::getSaveFileName(this,
-    tr("Create Project"), "", tr("Animation Editor Project (*.aep)"));
+    tr("Create Project"), "", tr("Animation Editor Project (*.aep)")).section(".",0,0);
 
     if(!newDocumentPath.isEmpty())
     {
