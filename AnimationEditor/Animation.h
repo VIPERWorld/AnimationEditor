@@ -31,7 +31,7 @@ public:
     const QVector<AnimationFrame> &getFrames() const { return m_animationFrames; }
     void addFrame(AnimationFrame newFrame) { m_animationFrames.push_back(newFrame); }
 
-    const AnimationFrame &getFrame(QString frameName)
+    AnimationFrame &getFrame(QString frameName)
     {
         for(auto &frame : m_animationFrames)
         {

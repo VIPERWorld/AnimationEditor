@@ -48,6 +48,14 @@ public:
                     };
                     animationsArray.append(animationObject);
                 }
+                else
+                {
+                    QJsonObject animationObject
+                    {
+                            {"name",   animation.getAnimationName()}
+                    };
+                    animationsArray.append(animationObject);
+                }
             }
             QJsonObject animationsObject
             {
@@ -67,10 +75,35 @@ public:
     virtual QVector<Animation> readFromFile(QString documentPath) override
     {
         QVector<Animation> animations;
-        QFile doc(documentPath);
-        if(doc.open(QIODevice::ReadOnly))
+        QFile file(documentPath);
+        if(file.open(QIODevice::ReadOnly))
         {
-
+            QString data = file.readAll();
+            QJsonDocument document = QJsonDocument::fromJson(data.toUtf8());
+            QJsonObject animationsObject = document.object();
+            QJsonArray animationsArray = animationsObject.value("Animations").toArray();
+            for(auto i = 0; i <= animationsArray.size() ; ++i)
+            {
+                auto animationObject = animationsArray.at(i).toObject();
+                animations.append(Animation());
+                auto animation = animations.back();
+                animation.setAnimationName(animationObject.value("name").toString());
+                if(animationObject.contains("frames"))
+                {
+                    QJsonArray framesArray = animationObject.value("frames").toArray();
+                    for (auto j = 0; j <= framesArray.size(); ++j)
+                    {
+                        AnimationFrame frame;
+                        auto frameObject = framesArray.at(j).toObject();
+                        frame.m_frameName = frameObject.value("name").toString();
+                        frame.m_framePosition = {(float) frameObject.value("x").toDouble(),
+                                                 (float) frameObject.value("y").toDouble()};
+                        frame.m_frameSize = {(float) frameObject.value("width").toDouble(),
+                                             (float) frameObject.value("height").toDouble()};
+                        animation.addFrame(frame);
+                    }
+                }
+            }
         }
         return animations;
     }

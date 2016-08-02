@@ -48,7 +48,7 @@ public:
             QDataStream binReader(&file);
             int numOfAnimations = 0;
             binReader >> numOfAnimations;
-            for (auto i = 0; i <= numOfAnimations; ++i)
+            for (auto i = 0; i < numOfAnimations; ++i)
             {
                 Animation animation;
                 QString animationName;
@@ -56,7 +56,7 @@ public:
                 animation.setAnimationName(animationName);
                 int numOfFrames = 0;
                 binReader >> numOfFrames;
-                for(auto i = 0; i <= numOfFrames; ++i)
+                for(auto i = 0; i < numOfFrames; ++i)
                 {
                     AnimationFrame frame;
                     binReader >> frame.m_frameName;

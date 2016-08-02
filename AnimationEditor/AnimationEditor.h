@@ -57,13 +57,16 @@ private:
     int m_animationIndex{-1};
     QListWidget *animationsView{nullptr};
     void updateAnimationsView();
-    QLabel *animationsLabel  {nullptr};
+    QLabel *animationsLabel{nullptr};
     QPushButton *newAnimationButton{nullptr};
     QPushButton *deleteAnimationButton{nullptr};
     QPushButton *upAnimationButton{nullptr};
     QPushButton *downAnimationButton{nullptr};
     //Frames
-    QListWidget *animationFramesView  {nullptr};
+    QLabel *framesLabel{nullptr};
+    QListWidget *animationFramesView{nullptr};
+    void updateFramesView();
+    int m_frameIndex{-1};
     //Frame variables
     QSpinBox  *XSpin        {nullptr};
     QSpinBox  *YSpin        {nullptr};

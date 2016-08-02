@@ -142,6 +142,28 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
             updateAnimationsView();
         }
     });
+    //Frames list
+    animationFramesView = new QListWidget(this);
+    connect(animationFramesView, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem *item)
+    {
+        bool ok;
+        QString text = QInputDialog::getText(this, tr("Set new frame name"),
+                                             tr("New frame name"), QLineEdit::Normal,
+                                             QDir::home().dirName(), &ok);
+        if (ok && !text.isEmpty())
+        {
+            m_animations[m_animationIndex].getFrame(item->text()).m_frameName = text;
+            updateFramesView();
+        }
+    });
+
+    //Update frames input boxes each time frames is selected
+    connect(animationFramesView, &QListWidget::currentItemChanged, this, [this](QListWidgetItem *item)
+    {
+       //updateInputBoxes
+    });
+    animationFramesView->setEnabled(false);
+
     connect(animationsView, &QListWidget::currentRowChanged, this, [this](int index){ m_animationIndex = index; });
     //'Animations' label
     animationsLabel = new QLabel("Animations", this);
@@ -168,6 +190,7 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     editorLayout->addWidget(upAnimationButton, 2, 2, 1, 1);
     editorLayout->addWidget(downAnimationButton, 2, 3, 1, 1);
     editorLayout->addWidget(deleteAnimationButton, 2, 4, 1, 2);
+    editorLayout->addWidget(animationFramesView, 3, 0, 1, 6);
 
     //Create widget -> apply layout -> set as central widget of main window
     QWidget *editor = new QWidget(this);
@@ -191,6 +214,7 @@ void AnimationEditor::enableWidgets(bool boolean)
     importFromXMLAction->setEnabled(boolean);
     exportToJSONAction->setEnabled(boolean);
     exportToXMLAction->setEnabled(boolean);
+    animationFramesView->setEnabled(boolean);
 }
 
 void AnimationEditor::setDocumentWriter(DocumentWriter *writer)
@@ -289,4 +313,14 @@ void AnimationEditor::updateAnimationsView()
     animationsView->clear();
     for(auto const &animation : m_animations)
         animationsView->addItem(animation.getAnimationName());
+}
+
+void AnimationEditor::updateFramesView()
+{
+    animationFramesView->clear();
+    if(m_frameIndex > -1)
+    {
+        for (auto const &frame : m_animations[m_animationIndex].getFrames())
+            animationFramesView->addItem(frame.m_frameName);
+    }
 }
