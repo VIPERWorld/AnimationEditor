@@ -28,7 +28,7 @@ public:
     void setAnimationName(QString animationName) { m_animationName = animationName; }
     const QString &getAnimationName() const { return m_animationName; }
 
-    const QVector<AnimationFrame> &getFrames() const { return m_animationFrames; }
+    QVector<AnimationFrame> &getFrames() { return m_animationFrames; }
     void addFrame(AnimationFrame newFrame) { m_animationFrames.push_back(newFrame); }
 
     AnimationFrame &getFrame(QString frameName)
@@ -38,23 +38,13 @@ public:
             if(frame.m_frameName == frameName)
                 return frame;
         }
-        return m_nullAnimation;
-    }
-
-    void deleteFrame(QString frameName)
-    {
-        auto foundFrame = std::find_if(m_animationFrames.begin(), m_animationFrames.end(), [frameName](const AnimationFrame &animationFrame)
-        {
-            return animationFrame.m_frameName == frameName;
-        });
-
-        if(foundFrame != m_animationFrames.end())
-            m_animationFrames.erase(foundFrame);
+        return m_nullAnimationFrame;
     }
 private:
     QString m_animationName{"Animation"};
     QVector<AnimationFrame> m_animationFrames;
-    AnimationFrame m_nullAnimation;
+    //Null animation returned when frame not found
+    static AnimationFrame m_nullAnimationFrame;
 };
 
 

@@ -28,6 +28,10 @@ public slots:
     void deleteAnimation();
     void moveAnimationUp();
     void moveAnimationDown();
+    void newFrame();
+    void deleteFrame();
+    void moveFrameUp();
+    void moveFrameDown();
 private:
     void enableWidgets(bool);
     //Document writer strategy
@@ -54,7 +58,8 @@ private:
 
     //Animations
     QVector<Animation> m_animations;
-    int m_animationIndex{-1};
+    QVector<Animation>::iterator m_currentAnimation{ m_animations.end() };
+    std::unique_ptr<QVector<AnimationFrame>::iterator> m_currentFrame;
     QListWidget *animationsView{nullptr};
     void updateAnimationsView();
     QLabel *animationsLabel{nullptr};
@@ -66,12 +71,22 @@ private:
     QLabel *framesLabel{nullptr};
     QListWidget *animationFramesView{nullptr};
     void updateFramesView();
-    int m_frameIndex{-1};
+    QPushButton *newFrameButton{nullptr};
+    QPushButton *deleteFrameButton{nullptr};
+    QPushButton *upFrameButton{nullptr};
+    QPushButton *downFrameButton{nullptr};
     //Frame variables
+    QLabel *XLabel{nullptr};
     QSpinBox  *XSpin        {nullptr};
+    QLabel *YLabel{nullptr};
     QSpinBox  *YSpin        {nullptr};
+    QLabel *WidthLabel{nullptr};
     QSpinBox  *WidthSpin    {nullptr};
+    QLabel *HeightLabel{nullptr};
     QSpinBox  *HeightSpin   {nullptr};
+
+    int animationCounter{0};
+    int frameCounter{0};
 };
 
 #endif // ANIMATIONEDITOR_H

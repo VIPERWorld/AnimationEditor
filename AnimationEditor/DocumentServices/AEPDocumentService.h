@@ -16,12 +16,12 @@ public:
             QDataStream binWriter(&file);
             int numOfAnimations = animations.size();
             binWriter << numOfAnimations;
-            for(auto const &animation : animations)
+            for(auto animation : animations)
             {
                 binWriter << animation.getAnimationName();
                 int numOfFrames = animation.getFrames().size();
                 binWriter << numOfFrames;
-                for(auto const &frame : animation.getFrames())
+                for(auto frame : animation.getFrames())
                 {
                     binWriter << frame.m_frameName;
                     binWriter << frame.m_framePosition.x();

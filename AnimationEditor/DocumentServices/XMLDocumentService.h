@@ -20,13 +20,13 @@ public:
             writer.writeStartDocument();
             //<Animations>
             writer.writeStartElement("Animations");
-            for(auto const &animation : animations)
+            for(auto animation : animations)
             {
                 //<Animation>
                 writer.writeStartElement("Animation");
                 //Animation name
                 writer.writeAttribute("name", animation.getAnimationName());
-                for(auto const & frame : animation.getFrames())
+                for(auto frame : animation.getFrames())
                 {
                     //<Frame>
                     writer.writeStartElement("Frame");

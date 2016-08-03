@@ -19,7 +19,7 @@ public:
         if(file.open(QIODevice::WriteOnly))
         {
             QJsonArray animationsArray;
-            for(auto const &animation : animations)
+            for(auto animation : animations)
             {
                 if(animation.getFrames().size() > 0)
                 {

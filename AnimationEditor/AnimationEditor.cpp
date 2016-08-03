@@ -6,7 +6,8 @@
 #include "DocumentServices/XMLDocumentService.h"
 #include "DocumentServices/JSONDocumentService.h"
 #include "DocumentServices/AEPDocumentService.h"
-
+#include <QtAlgorithms>
+#include <iostream>
 
 AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
 {
@@ -18,25 +19,21 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     newProjectAction = new QAction(fileMenu);
     newProjectAction->setText("New");
     connect(newProjectAction, &QAction::triggered, this, &AnimationEditor::createNewProject);
-
     //Open document
     openProjectAction = new QAction(fileMenu);
     openProjectAction->setText("Open");
     connect(openProjectAction, &QAction::triggered, this, &AnimationEditor::openProject);
-
     //Save document
     saveProjectAction = new QAction(fileMenu);
     saveProjectAction->setText("Save");
     connect(saveProjectAction, &QAction::triggered, this, &AnimationEditor::saveProject);
     saveProjectAction->setEnabled(false);
-
     //Re-Export project to last used format
     reExportAction = new QAction(fileMenu);
     reExportAction->setText("Re-Export");
     connect(reExportAction, &QAction::triggered, this, [this]() { m_documentWriter->writeToFile(m_exportedPath, m_animations); });
     //Enable after opening/creating
     reExportAction->setEnabled(false);
-
     //Importing
     //Import from .XML
     importFromXMLAction = new QAction(fileMenu);
@@ -53,7 +50,6 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
         }
     });
     importFromXMLAction->setEnabled(false);
-
     //Import from .JSON
     importFromJSONAction = new QAction(fileMenu);
     importFromJSONAction->setText("Import from .JSON");
@@ -69,7 +65,6 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
         }
     });
     importFromJSONAction->setEnabled(false);
-
     //Exporting
     //Export to .XML
     exportToXMLAction = new QAction(fileMenu);
@@ -87,7 +82,6 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
         }
     });
     exportToXMLAction->setEnabled(false);
-
     //Export to .JSON
     exportToJSONAction = new QAction(fileMenu);
     exportToJSONAction->setText("Export To .JSON");
@@ -104,12 +98,10 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
         }
     });
     exportToJSONAction->setEnabled(false);
-
     //Exit app
     exitAction = new QAction(fileMenu);
     exitAction->setText("Exit");
     connect(exitAction, &QAction::triggered, this, &AnimationEditor::close);
-
     //Pack actions into QList
     QList<QAction*> fileActions;
     fileActions.append(newProjectAction);
@@ -125,10 +117,9 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     fileActions.append(exitAction);
     //Add actions to fileMenu
     fileMenu->addActions(fileActions);
-
     //Layout
     editorLayout = new QGridLayout(this);
-    //Animations list
+    //////////////////////////////////////////////Animations
     animationsView = new QListWidget(this);
     connect(animationsView, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem *item)
     {
@@ -138,33 +129,18 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
                                              QDir::home().dirName(), &ok);
         if (ok && !text.isEmpty())
         {
-            m_animations[m_animationIndex].setAnimationName(text);
+            m_currentAnimation->setAnimationName(text);
             updateAnimationsView();
         }
     });
-    //Frames list
-    animationFramesView = new QListWidget(this);
-    connect(animationFramesView, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem *item)
+    connect(animationsView, &QListWidget::currentRowChanged, this, [this](int index)
     {
-        bool ok;
-        QString text = QInputDialog::getText(this, tr("Set new frame name"),
-                                             tr("New frame name"), QLineEdit::Normal,
-                                             QDir::home().dirName(), &ok);
-        if (ok && !text.isEmpty())
-        {
-            m_animations[m_animationIndex].getFrame(item->text()).m_frameName = text;
-            updateFramesView();
-        }
+        if(index != -1)
+            m_currentAnimation = &m_animations[index];
+        else
+            m_currentAnimation = nullptr;
+        updateFramesView();
     });
-
-    //Update frames input boxes each time frames is selected
-    connect(animationFramesView, &QListWidget::currentItemChanged, this, [this](QListWidgetItem *item)
-    {
-       //updateInputBoxes
-    });
-    animationFramesView->setEnabled(false);
-
-    connect(animationsView, &QListWidget::currentRowChanged, this, [this](int index){ m_animationIndex = index; });
     //'Animations' label
     animationsLabel = new QLabel("Animations", this);
     animationsLabel->setAlignment(Qt::AlignCenter);
@@ -182,21 +158,128 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
     downAnimationButton = new QPushButton(QString("Down"), this);
     connect(downAnimationButton, &QPushButton::released, this, &AnimationEditor::moveAnimationDown);
     downAnimationButton->setEnabled(false);
+    //////////////////////////////////////////////Frames
+    framesLabel = new QLabel("Frames", this);
+    animationFramesView = new QListWidget(this);
+    connect(animationFramesView, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem *item)
+    {
+        bool ok;
+        QString text = QInputDialog::getText(this, tr("Set new frame name"),
+                                             tr("New frame name"), QLineEdit::Normal,
+                                             QDir::home().dirName(), &ok);
+        if (ok && !text.isEmpty() && m_currentFrame)
+        {
+            (*m_currentFrame)->m_frameName = text;
+            updateFramesView();
+        }
+    });
+    //Update frames index
+    connect(animationFramesView, &QListWidget::currentRowChanged, this, [this](int index)
+    {
+        if(index != -1 && m_currentAnimation != m_animations.end())
+        {
+            m_currentFrame.reset(new QVector<AnimationFrame>::iterator);
+            *m_currentFrame = m_currentAnimation->getFrames().begin() + index;
+        }
+        else
+            m_currentFrame.reset();
 
-    //Place widgets into layout
+        if(m_currentAnimation != m_animations.end() && m_currentFrame)
+        {
+            XSpin->setEnabled(true);
+            YSpin->setEnabled(true);
+            WidthSpin->setEnabled(true);
+            HeightSpin->setEnabled(true);
+            XSpin->setValue((int)(*m_currentFrame)->m_framePosition.x());
+            YSpin->setValue((int)(*m_currentFrame)->m_framePosition.y());
+            WidthSpin->setValue((int)(*m_currentFrame)->m_frameSize.x());
+            HeightSpin->setValue((int)(*m_currentFrame)->m_frameSize.y());
+        }
+        else
+        {
+            XSpin->setEnabled(false);
+            YSpin->setEnabled(false);
+            WidthSpin->setEnabled(false);
+            HeightSpin->setEnabled(false);
+            XSpin->clear();
+            YSpin->clear();
+            WidthSpin->clear();
+            HeightSpin->clear();
+        }
+
+    });
+    animationFramesView->setEnabled(false);
+    //New frame button
+    newFrameButton = new QPushButton("New", this);
+    connect(newFrameButton, &QPushButton::released, this, &AnimationEditor::newFrame);
+    newFrameButton->setEnabled(false);
+    //Delete frame button
+    deleteFrameButton = new QPushButton("Delete", this);
+    connect(deleteFrameButton, &QPushButton::released, this, &AnimationEditor::deleteFrame);
+    deleteFrameButton->setEnabled(false);
+    //Up frame button
+    upFrameButton = new QPushButton("Up", this);
+    connect(upFrameButton, &QPushButton::released, this, &AnimationEditor::moveFrameUp);
+    upFrameButton->setEnabled(false);
+    //Down frame button
+    downFrameButton = new QPushButton("Down", this);
+    connect(downFrameButton, &QPushButton::released, this, &AnimationEditor::moveFrameDown);
+    downFrameButton->setEnabled(false);
+    //////////////////////////////////////////////Frame input boxes
+    XLabel = new QLabel("X", this);
+    XSpin = new QSpinBox(this);
+    connect(XSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val)
+    {
+       if(m_currentAnimation && m_currentFrame)
+           (*m_currentFrame)->m_framePosition.setX(val);
+    });
+    XSpin->setEnabled(false);
+    YLabel = new QLabel("Y", this);
+    YSpin = new QSpinBox(this);
+    connect(YSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val){
+        if(m_currentAnimation && m_currentFrame)
+            (*m_currentFrame)->m_framePosition.setY(val);
+    });
+    YSpin->setEnabled(false);
+    WidthLabel = new QLabel("Width", this);
+    WidthSpin = new QSpinBox(this);
+    connect(WidthSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val){
+        if(m_currentAnimation && m_currentFrame)
+            (*m_currentFrame)->m_frameSize.setX(val);
+    });
+    WidthSpin->setEnabled(false);
+    HeightLabel = new QLabel("Height", this);
+    HeightSpin = new QSpinBox(this);
+    connect(HeightSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val){
+        if(m_currentAnimation && m_currentFrame)
+            (*m_currentFrame)->m_frameSize.setY(val);
+    });
+    HeightSpin->setEnabled(false);
+    //////////////////////////////////////////////Layout
     editorLayout->addWidget(animationsLabel, 0, 0, 1, 6);
     editorLayout->addWidget(animationsView, 1, 0, 1, 6);
     editorLayout->addWidget(newAnimationButton, 2, 0, 1, 2);
     editorLayout->addWidget(upAnimationButton, 2, 2, 1, 1);
     editorLayout->addWidget(downAnimationButton, 2, 3, 1, 1);
     editorLayout->addWidget(deleteAnimationButton, 2, 4, 1, 2);
-    editorLayout->addWidget(animationFramesView, 3, 0, 1, 6);
-
+    editorLayout->addWidget(framesLabel, 3, 0, 1, 12, Qt::AlignCenter);
+    editorLayout->addWidget(animationFramesView, 4, 0, 4, 12);
+    editorLayout->addWidget(newFrameButton, 8, 0, 1, 5);
+    editorLayout->addWidget(upFrameButton, 8, 5, 1, 1);
+    editorLayout->addWidget(downFrameButton, 8, 6, 1, 1);
+    editorLayout->addWidget(deleteFrameButton, 8, 7, 1, 5);
+    editorLayout->addWidget(XLabel, 4, 12, 1, 2, Qt::AlignCenter);
+    editorLayout->addWidget(XSpin, 5, 12, 1, 2);
+    editorLayout->addWidget(YLabel, 4, 14, 1, 2, Qt::AlignCenter);
+    editorLayout->addWidget(YSpin, 5, 14, 1 , 2);
+    editorLayout->addWidget(WidthLabel, 6, 12, 1, 2, Qt::AlignCenter);
+    editorLayout->addWidget(WidthSpin, 7, 12, 1, 2);
+    editorLayout->addWidget(HeightLabel, 6, 14, 1, 2, Qt::AlignCenter);
+    editorLayout->addWidget(HeightSpin, 7, 14, 1, 2);
     //Create widget -> apply layout -> set as central widget of main window
     QWidget *editor = new QWidget(this);
     editor->setLayout(editorLayout);
     QMainWindow::setCentralWidget(editor);
-
     //Disable widgets
     enableWidgets(false);
     m_animations.clear();
@@ -215,6 +298,10 @@ void AnimationEditor::enableWidgets(bool boolean)
     exportToJSONAction->setEnabled(boolean);
     exportToXMLAction->setEnabled(boolean);
     animationFramesView->setEnabled(boolean);
+    newFrameButton->setEnabled(boolean);
+    deleteFrameButton->setEnabled(boolean);
+    upFrameButton->setEnabled(boolean);
+    downFrameButton->setEnabled(boolean);
 }
 
 void AnimationEditor::setDocumentWriter(DocumentWriter *writer)
@@ -236,8 +323,10 @@ void AnimationEditor::createNewProject()
         {
             enableWidgets(true);
             reExportAction->setEnabled(false);
-            m_animationIndex = -1;
+            m_currentAnimation = nullptr;
+            m_currentFrame = nullptr;
             animationsView->clear();
+            animationFramesView->clear();
             m_animations.clear();
             m_documentWriter.reset(); 
         }
@@ -259,7 +348,8 @@ void AnimationEditor::openProject()
          //Enable widgets
          enableWidgets(true);
          reExportAction->setEnabled(false);
-         m_animationIndex = -1;
+         m_currentAnimation = nullptr;
+         m_currentFrame = nullptr;
          //Set writer to nullptr
          m_documentWriter.reset();
          updateAnimationsView();
@@ -272,42 +362,6 @@ void AnimationEditor::saveProject()
     aepWriter.writeToFile(m_actualDocumentPath, m_animations);
 }
 
-
-void AnimationEditor::newAnimation()
-{
-    m_animations.append(Animation());
-    m_animations.back().setAnimationName("Animation");
-    updateAnimationsView();
-}
-
-void AnimationEditor::deleteAnimation()
-{
-   if(m_animationIndex != -1)
-       m_animations.erase(m_animations.begin() + m_animationIndex);
-    updateAnimationsView();
-    m_animationIndex = -1;
-}
-
-void AnimationEditor::moveAnimationUp()
-{
-    if(m_animationIndex > 0)
-        m_animations.move(m_animationIndex--, m_animationIndex - 1);
-
-    const int backupIndex = m_animationIndex;
-    updateAnimationsView();
-    animationsView->setCurrentRow(backupIndex, QItemSelectionModel::Select);
-}
-
-void AnimationEditor::moveAnimationDown()
-{
-    if(m_animationIndex != -1 && m_animationIndex < m_animations.size() - 1)
-        m_animations.move(m_animationIndex++, m_animationIndex + 1);
-
-    const int backupIndex = m_animationIndex;
-    updateAnimationsView();
-    animationsView->setCurrentRow(backupIndex, QItemSelectionModel::Select);
-}
-
 void AnimationEditor::updateAnimationsView()
 {
     animationsView->clear();
@@ -318,9 +372,103 @@ void AnimationEditor::updateAnimationsView()
 void AnimationEditor::updateFramesView()
 {
     animationFramesView->clear();
-    if(m_frameIndex > -1)
+    if(m_currentAnimation && m_currentAnimation->getFrames().size() > 0)
     {
-        for (auto const &frame : m_animations[m_animationIndex].getFrames())
+        for (auto const &frame : m_currentAnimation->getFrames())
             animationFramesView->addItem(frame.m_frameName);
     }
+}
+
+//Animation creation methods
+void AnimationEditor::newAnimation()
+{
+    m_animations.append(Animation());
+    m_animations.back().setAnimationName("Animation" + QString::number(animationCounter++));
+    updateAnimationsView();
+}
+
+void AnimationEditor::deleteAnimation()
+{
+
+    if (m_currentAnimation)
+    {
+        m_animations.erase(m_currentAnimation);
+        m_currentAnimation = nullptr;
+    }
+    updateAnimationsView();
+
+}
+
+void AnimationEditor::moveAnimationUp()
+{
+    int distance = -1;
+    if(m_currentAnimation && m_currentAnimation != std::begin(m_animations))
+    {
+        distance = (int)std::distance(m_animations.begin(), m_currentAnimation);
+        std::cerr << distance;
+        m_animations.move(distance, distance - 1);
+    }
+    updateAnimationsView();
+    if(distance != -1)
+        animationsView->setCurrentRow(distance - 1, QItemSelectionModel::Select);
+}
+
+void AnimationEditor::moveAnimationDown()
+{
+    int distance = -1;
+    if (m_currentAnimation && m_currentAnimation != std::end(m_animations) - 1)
+    {
+        distance = (int) std::distance(m_animations.begin(), m_currentAnimation);
+        m_animations.move(distance, distance + 1);
+    }
+    updateAnimationsView();
+    if (distance != -1)
+        animationsView->setCurrentRow(distance + 1, QItemSelectionModel::Select);
+}
+//Frame creation methods
+void AnimationEditor::newFrame()
+{
+    if(m_currentAnimation)
+    {
+        AnimationFrame newFrame;
+        newFrame.m_frameName = "Frame" + QString::number(frameCounter++);
+        m_currentAnimation->addFrame(newFrame);
+    }
+    updateFramesView();
+}
+
+void AnimationEditor::deleteFrame()
+{
+    if(m_currentFrame)
+    {
+        m_currentAnimation->getFrames().erase(*m_currentFrame);
+        m_currentFrame = nullptr;
+    }
+    updateFramesView();
+}
+
+void AnimationEditor::moveFrameUp()
+{
+    int distance = -1;
+    if(m_currentAnimation && m_currentFrame && (*m_currentFrame)->m_frameName != m_currentAnimation->getFrames().front().m_frameName)
+    {
+        distance = (int)std::distance(m_currentAnimation->getFrames().begin(), *m_currentFrame);
+        m_currentAnimation->getFrames().move(distance, distance - 1);
+    }
+    updateFramesView();
+    if(distance != -1)
+        animationFramesView->setCurrentRow(distance - 1, QItemSelectionModel::Select);
+}
+
+void AnimationEditor::moveFrameDown()
+{
+    int distance = -1;
+    if(m_currentAnimation && m_currentFrame && *m_currentFrame != m_currentAnimation->getFrames().begin() + m_currentAnimation->getFrames().size() - 1)
+    {
+        distance = (int)std::distance(m_currentAnimation->getFrames().begin(), *m_currentFrame);
+        m_currentAnimation->getFrames().move(distance, distance + 1);
+    }
+    updateFramesView();
+    if(distance != -1)
+        animationFramesView->setCurrentRow(distance + 1, QItemSelectionModel::Select);
 }
