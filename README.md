@@ -4,4 +4,4 @@ AnimationEditor is a 2D AnimationEditor which can be used for easier making anim
 
 # Technology #
 * C++**11**
-* Qt 5.7
+* Qt 5.7 { Qt5Widgets, Qt5Xml }
