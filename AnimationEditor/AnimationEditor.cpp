@@ -8,6 +8,7 @@
 #include "DocumentServices/AEPDocumentService.h"
 #include <QtAlgorithms>
 #include <iostream>
+#include <QtWidgets/QMessageBox>
 
 AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
 {
@@ -129,7 +130,24 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
                                              QDir::home().dirName(), &ok);
         if (ok && !text.isEmpty())
         {
-            m_currentAnimation->setAnimationName(text);
+            bool okName = true;
+            for(auto &animation : m_animations)
+            {
+                if(animation.getAnimationName() == text)
+                {
+                    okName = false;
+                    break;
+                }
+            }
+            if(okName)
+                m_currentAnimation->setAnimationName(text);
+            else
+            {
+                QMessageBox warning;
+                warning.setText("There's already animation with this name");
+                warning.setStandardButtons(QMessageBox::Ok);
+                warning.exec();
+            }
             updateAnimationsView();
         }
     });
@@ -169,7 +187,25 @@ AnimationEditor::AnimationEditor(QWidget *parent) : QMainWindow(parent)
                                              QDir::home().dirName(), &ok);
         if (ok && !text.isEmpty() && m_currentFrame)
         {
-            (*m_currentFrame)->m_frameName = text;
+            bool okName = true;
+            for(auto &frame : m_currentAnimation->getFrames())
+            {
+                if(frame.m_frameName == text)
+                {
+                    okName = false;
+                    break;
+                }
+            }
+            
+            if(okName)
+                (*m_currentFrame)->m_frameName = text;
+            else
+            {
+                QMessageBox warning;
+                warning.setText("There's already frame with this name");
+                warning.setStandardButtons(QMessageBox::Ok);
+                warning.exec();
+            }
             updateFramesView();
         }
     });
@@ -402,28 +438,37 @@ void AnimationEditor::deleteAnimation()
 void AnimationEditor::moveAnimationUp()
 {
     int distance = -1;
-    if(m_currentAnimation && m_currentAnimation != std::begin(m_animations))
+    if(m_currentAnimation)
     {
-        distance = (int)std::distance(m_animations.begin(), m_currentAnimation);
-        std::cerr << distance;
-        m_animations.move(distance, distance - 1);
+        distance = (int) std::distance(m_animations.begin(), m_currentAnimation);
+        if (distance > 0)
+        {
+            m_animations.move(distance, distance - 1);
+            --distance;
+        }
     }
     updateAnimationsView();
     if(distance != -1)
-        animationsView->setCurrentRow(distance - 1, QItemSelectionModel::Select);
+        animationsView->setCurrentRow(distance, QItemSelectionModel::Select);
 }
 
 void AnimationEditor::moveAnimationDown()
 {
     int distance = -1;
-    if (m_currentAnimation && m_currentAnimation != std::end(m_animations) - 1)
+    if(m_currentAnimation)
     {
         distance = (int) std::distance(m_animations.begin(), m_currentAnimation);
-        m_animations.move(distance, distance + 1);
+        if (distance < m_animations.size() - 1)
+        {
+            m_animations.move(distance, distance + 1);
+            ++distance;
+        }
+        else
+            distance = m_animations.size() - 1;
     }
     updateAnimationsView();
-    if (distance != -1)
-        animationsView->setCurrentRow(distance + 1, QItemSelectionModel::Select);
+    if(distance != -1)
+        animationsView->setCurrentRow(distance, QItemSelectionModel::Select);
 }
 //Frame creation methods
 void AnimationEditor::newFrame()
@@ -450,25 +495,35 @@ void AnimationEditor::deleteFrame()
 void AnimationEditor::moveFrameUp()
 {
     int distance = -1;
-    if(m_currentAnimation && m_currentFrame && (*m_currentFrame)->m_frameName != m_currentAnimation->getFrames().front().m_frameName)
+    if (m_currentAnimation && m_currentFrame)
     {
-        distance = (int)std::distance(m_currentAnimation->getFrames().begin(), *m_currentFrame);
-        m_currentAnimation->getFrames().move(distance, distance - 1);
+        distance = (int) std::distance(m_currentAnimation->getFrames().begin(), *m_currentFrame);
+        if (distance > 0)
+        {
+            m_currentAnimation->getFrames().move(distance, distance - 1);
+            --distance;
+        }
     }
     updateFramesView();
-    if(distance != -1)
-        animationFramesView->setCurrentRow(distance - 1, QItemSelectionModel::Select);
+    if (distance != -1)
+        animationFramesView->setCurrentRow(distance, QItemSelectionModel::Select);
 }
 
 void AnimationEditor::moveFrameDown()
 {
     int distance = -1;
-    if(m_currentAnimation && m_currentFrame && *m_currentFrame != m_currentAnimation->getFrames().begin() + m_currentAnimation->getFrames().size() - 1)
+    if(m_currentAnimation && m_currentFrame)
     {
         distance = (int)std::distance(m_currentAnimation->getFrames().begin(), *m_currentFrame);
-        m_currentAnimation->getFrames().move(distance, distance + 1);
+        if(distance < m_currentAnimation->getFrames().size() - 1)
+        {
+            m_currentAnimation->getFrames().move(distance, distance + 1);
+            ++distance;
+        }
+        else
+            distance = m_currentAnimation->getFrames().size() - 1;
     }
     updateFramesView();
     if(distance != -1)
-        animationFramesView->setCurrentRow(distance + 1, QItemSelectionModel::Select);
+        animationFramesView->setCurrentRow(distance, QItemSelectionModel::Select);
 }
