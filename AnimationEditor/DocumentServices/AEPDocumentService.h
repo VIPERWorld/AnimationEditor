@@ -1,6 +1,6 @@
 #ifndef AEPDOCUMENTSERVICE_H
 #define AEPDOCUMENTSERVICE_H
-#include "../DocumentService.h"
+#include "DocumentService.h"
 #include <QFile>
 
 class AEPDocumentWriter : virtual public DocumentWriter
@@ -16,7 +16,7 @@ public:
             QDataStream binWriter(&file);
             int numOfAnimations = animations.size();
             binWriter << numOfAnimations;
-            for(auto animation : animations)
+            for(auto &animation : animations)
             {
                 binWriter << animation.getAnimationName();
                 int numOfFrames = animation.getFrames().size();

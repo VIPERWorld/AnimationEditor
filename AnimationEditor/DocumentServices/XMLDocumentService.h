@@ -2,7 +2,7 @@
 #define XMLDOCUMENTSERVICE_H
 
 #include <QtCore/QXmlStreamWriter>
-#include "../DocumentService.h"
+#include "DocumentService.h"
 #include <QString>
 
 class XMLDocumentWriter : virtual public DocumentWriter
@@ -20,7 +20,7 @@ public:
             writer.writeStartDocument();
             //<Animations>
             writer.writeStartElement("Animations");
-            for(auto animation : animations)
+            for(auto &animation : animations)
             {
                 //<Animation>
                 writer.writeStartElement("Animation");
@@ -66,7 +66,7 @@ public:
                     {
                         if(reader.name() == "Animation")
                         {
-                            animations.append(Animation());
+                            animations.append(Animation{});
                             animations.back().setAnimationName(reader.attributes().value("name").toString());
                             while(reader.readNextStartElement())
                             {

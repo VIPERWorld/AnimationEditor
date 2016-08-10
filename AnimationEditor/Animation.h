@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QVector2D>
 #include <algorithm>
+#include <QPixmap>
 
 struct AnimationFrame
 {
@@ -25,6 +26,50 @@ struct AnimationFrame
 class Animation
 {
 public:
+    Animation() = default;
+    ~Animation() { if(m_spriteSheet) delete m_spriteSheet; }
+    Animation(const Animation& other)
+    {
+        m_animationFrames = other.m_animationFrames;
+        m_animationName = other.m_animationName;
+        if(!other.m_spriteSheetPath.isEmpty())
+        {
+            m_spriteSheetPath = other.m_spriteSheetPath;
+            m_spriteSheet = new QPixmap();
+            m_spriteSheet->load(m_spriteSheetPath);
+        }
+        else
+            m_spriteSheet = nullptr;
+    }
+    Animation(Animation&& other)
+    {
+        m_animationFrames = other.m_animationFrames;
+        m_animationName = other.m_animationName;
+        if(!other.m_spriteSheetPath.isEmpty())
+        {
+            m_spriteSheetPath = other.m_spriteSheetPath;
+            m_spriteSheet = new QPixmap();
+            m_spriteSheet->load(m_spriteSheetPath);
+        }
+        else
+            m_spriteSheet = nullptr;
+    }
+
+    Animation& operator=(const Animation& other)
+    {
+        m_animationFrames = other.m_animationFrames;
+        m_animationName = other.m_animationName;
+        if(!other.m_spriteSheetPath.isEmpty())
+        {
+            m_spriteSheetPath = other.m_spriteSheetPath;
+            m_spriteSheet = new QPixmap();
+            m_spriteSheet->load(m_spriteSheetPath);
+        }
+        else
+            m_spriteSheet = nullptr;
+        return *this;
+    }
+
     void setAnimationName(QString animationName) { m_animationName = animationName; }
     const QString &getAnimationName() const { return m_animationName; }
 
@@ -40,11 +85,21 @@ public:
         }
         return m_nullAnimationFrame;
     }
+
+    QPixmap *getSpritesheet() { return m_spriteSheet; }
+    bool loadSpriteSheetFromFile(QString path)
+    {
+        m_spriteSheet = new QPixmap();
+        m_spriteSheetPath = path;
+        return m_spriteSheet->load(path);
+    }
 private:
     QString m_animationName{"Animation"};
     QVector<AnimationFrame> m_animationFrames;
     //Null animation returned when frame not found
     static AnimationFrame m_nullAnimationFrame;
+    QString   m_spriteSheetPath{""};
+    QPixmap  *m_spriteSheet{nullptr};
 };
 
 

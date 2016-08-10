@@ -13,7 +13,9 @@ include_directories(${Qt5Xml_INCLUDES})
 set(SOURCE_FILES
         AnimationEditor/main.cpp
         AnimationEditor/AnimationEditor.cpp
-        AnimationEditor/Animation.cpp)
+        AnimationEditor/Animation.cpp
+        AnimationEditor/Panels/AnimationsPanel.cpp
+        AnimationEditor/Panels/AnimationsPanel.h AnimationEditor/Panels/AnimationFramesPanel.cpp AnimationEditor/Panels/AnimationFramesPanel.h AnimationEditor/Panels/InputBoxesPanel.cpp AnimationEditor/Panels/InputBoxesPanel.h AnimationEditor/Panels/AnimationEditorPanel.cpp AnimationEditor/Panels/AnimationEditorPanel.h)
 
 add_executable(AnimationEditor ${SOURCE_FILES})
 qt5_use_modules(AnimationEditor Widgets)

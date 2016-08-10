@@ -1,6 +1,6 @@
 #ifndef JSONDOCUMENTWRITER_H
 #define JSONDOCUMENTWRITER_H
-#include "../DocumentService.h"
+#include "DocumentService.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -19,7 +19,7 @@ public:
         if(file.open(QIODevice::WriteOnly))
         {
             QJsonArray animationsArray;
-            for(auto animation : animations)
+            for(auto &animation : animations)
             {
                 if(animation.getFrames().size() > 0)
                 {
@@ -86,7 +86,7 @@ public:
             {
                 auto animationObject = animationsArray.at(i).toObject();
                 animations.append(Animation());
-                auto animation = animations.back();
+                auto &animation = animations.back();
                 animation.setAnimationName(animationObject.value("name").toString());
                 if(animationObject.contains("frames"))
                 {

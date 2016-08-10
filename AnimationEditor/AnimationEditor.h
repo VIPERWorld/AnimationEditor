@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QGridLayout>
+#include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QMenu>
 #include <QAction>
@@ -12,8 +13,13 @@
 #include <QPushButton>
 #include <QListWidget>
 #include "Animation.h"
-#include "DocumentService.h"
+#include "AnimationEditor/DocumentServices/DocumentService.h"
+#include "AnimationEditor/Panels/AnimationsPanel.h"
+#include "AnimationEditor/Panels/AnimationFramesPanel.h"
+#include "AnimationEditor/Panels/InputBoxesPanel.h"
 #include <memory>
+#include <QtWidgets/QCheckBox>
+#include <AnimationEditor/Panels/AnimationEditorPanel.h>
 
 class AnimationEditor : public QMainWindow
 {
@@ -24,14 +30,6 @@ public slots:
     void createNewProject();
     void openProject();
     void saveProject();
-    void newAnimation();
-    void deleteAnimation();
-    void moveAnimationUp();
-    void moveAnimationDown();
-    void newFrame();
-    void deleteFrame();
-    void moveFrameUp();
-    void moveFrameDown();
 private:
     void enableWidgets(bool);
     //Document writer strategy
@@ -55,38 +53,16 @@ private:
     QAction *exitAction             {nullptr};
 
     QGridLayout *editorLayout{nullptr};
-
     //Animations
     QVector<Animation> m_animations;
-    QVector<Animation>::iterator m_currentAnimation{ m_animations.end() };
-    std::unique_ptr<QVector<AnimationFrame>::iterator> m_currentFrame;
-    QListWidget *animationsView{nullptr};
-    void updateAnimationsView();
-    QLabel *animationsLabel{nullptr};
-    QPushButton *newAnimationButton{nullptr};
-    QPushButton *deleteAnimationButton{nullptr};
-    QPushButton *upAnimationButton{nullptr};
-    QPushButton *downAnimationButton{nullptr};
-    //Frames
-    QLabel *framesLabel{nullptr};
-    QListWidget *animationFramesView{nullptr};
-    void updateFramesView();
-    QPushButton *newFrameButton{nullptr};
-    QPushButton *deleteFrameButton{nullptr};
-    QPushButton *upFrameButton{nullptr};
-    QPushButton *downFrameButton{nullptr};
-    //Frame variables
-    QLabel *XLabel{nullptr};
-    QSpinBox  *XSpin        {nullptr};
-    QLabel *YLabel{nullptr};
-    QSpinBox  *YSpin        {nullptr};
-    QLabel *WidthLabel{nullptr};
-    QSpinBox  *WidthSpin    {nullptr};
-    QLabel *HeightLabel{nullptr};
-    QSpinBox  *HeightSpin   {nullptr};
-
-    int animationCounter{0};
-    int frameCounter{0};
+    //Animations panel
+    AnimationsPanel *animationsPanel{nullptr};
+    //Frames panel
+    AnimationFramesPanel *framesPanel{nullptr};
+    //Input Boxes panel
+    InputBoxesPanel *inputBoxesPanel{nullptr};
+    //Animation editor panel
+    AnimationEditorPanel *animationEditorPanel{nullptr};
 };
 
 #endif // ANIMATIONEDITOR_H

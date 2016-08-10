@@ -2,7 +2,7 @@
 #define DOCUMENTWRITER_H
 #include <QString>
 #include <vector>
-#include "Animation.h"
+#include "AnimationEditor/Animation.h"
 
 class DocumentWriter
 {
