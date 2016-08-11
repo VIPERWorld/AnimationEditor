@@ -7,6 +7,8 @@
 #include <QtWidgets/QGraphicsPixmapItem>
 #include "AnimationFramesPanel.h"
 #include "InputBoxesPanel.h"
+#include "Widgets/AnimationEditorView.h"
+
 
 class AnimationEditorPanel : public QWidget
 {
@@ -16,12 +18,14 @@ public:
 public slots:
     void updateSpriteSheet(Animation*);
     void updateFrameRectangle(QVector2D, QVector2D);
+    void updateCords(QVector2D);
 private:
     QGraphicsPixmapItem *m_actualSpriteSheet{nullptr};
-    QGraphicsRectItem *m_actualFrameRectange{nullptr};
+    QGraphicsRectItem *m_actualFrameRectangle{nullptr};
 
     QLabel *animationEditorLabel{nullptr};
-    QGraphicsView *animationEditorView{nullptr};
+    QLabel *editorCords{nullptr};
+    AnimationEditorView *animationEditorView{nullptr};
     QGraphicsScene *animationEditorScene{nullptr};
 };
 

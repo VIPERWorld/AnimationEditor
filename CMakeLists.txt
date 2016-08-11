@@ -15,7 +15,7 @@ set(SOURCE_FILES
         AnimationEditor/AnimationEditor.cpp
         AnimationEditor/Animation.cpp
         AnimationEditor/Panels/AnimationsPanel.cpp
-        AnimationEditor/Panels/AnimationsPanel.h AnimationEditor/Panels/AnimationFramesPanel.cpp AnimationEditor/Panels/AnimationFramesPanel.h AnimationEditor/Panels/InputBoxesPanel.cpp AnimationEditor/Panels/InputBoxesPanel.h AnimationEditor/Panels/AnimationEditorPanel.cpp AnimationEditor/Panels/AnimationEditorPanel.h)
+        AnimationEditor/Panels/AnimationsPanel.h AnimationEditor/Panels/AnimationFramesPanel.cpp AnimationEditor/Panels/AnimationFramesPanel.h AnimationEditor/Panels/InputBoxesPanel.cpp AnimationEditor/Panels/InputBoxesPanel.h AnimationEditor/Panels/AnimationEditorPanel.cpp AnimationEditor/Panels/AnimationEditorPanel.h AnimationEditor/Panels/Widgets/AnimationEditorView.cpp AnimationEditor/Panels/Widgets/AnimationEditorView.h)
 
 add_executable(AnimationEditor ${SOURCE_FILES})
 qt5_use_modules(AnimationEditor Widgets)

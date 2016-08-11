@@ -25,6 +25,8 @@ InputBoxesPanel::InputBoxesPanel(QMainWindow *parent, AnimationFramesPanel *fram
 
     XLabel = new QLabel("X", this);
     XSpin = new QSpinBox(this);
+    XSpin->setMaximum(99999);
+    XSpin->setMinimum(-99999);
     connect(XSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val)
     {
         if(m_currentFrame)
@@ -34,8 +36,11 @@ InputBoxesPanel::InputBoxesPanel(QMainWindow *parent, AnimationFramesPanel *fram
         }
     });
     XSpin->setEnabled(false);
+
     YLabel = new QLabel("Y", this);
     YSpin = new QSpinBox(this);
+    YSpin->setMaximum(99999);
+    YSpin->setMinimum(-99999);
     connect(YSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val){
         if(m_currentFrame)
         {
@@ -44,8 +49,11 @@ InputBoxesPanel::InputBoxesPanel(QMainWindow *parent, AnimationFramesPanel *fram
         }
     });
     YSpin->setEnabled(false);
+
     WidthLabel = new QLabel("Width", this);
     WidthSpin = new QSpinBox(this);
+    WidthSpin->setMaximum(99999);
+    WidthSpin->setMinimum(-99999);
     connect(WidthSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val){
         if(m_currentFrame)
         {
@@ -54,8 +62,11 @@ InputBoxesPanel::InputBoxesPanel(QMainWindow *parent, AnimationFramesPanel *fram
         }
     });
     WidthSpin->setEnabled(false);
+
     HeightLabel = new QLabel("Height", this);
     HeightSpin = new QSpinBox(this);
+    HeightSpin->setMaximum(99999);
+    HeightSpin->setMinimum(-99999);
     connect(HeightSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val)
     {
         if (m_currentFrame)
@@ -82,10 +93,10 @@ void InputBoxesPanel::updateValues()
 {
     if(m_currentFrame)
     {
-        XSpin->setValue(m_currentFrame->m_framePosition.x());
-        YSpin->setValue(m_currentFrame->m_framePosition.y());
-        WidthSpin->setValue(m_currentFrame->m_frameSize.x());
-        HeightSpin->setValue(m_currentFrame->m_frameSize.y());
+        XSpin->setValue((int)m_currentFrame->m_framePosition.x());
+        YSpin->setValue((int)m_currentFrame->m_framePosition.y());
+        WidthSpin->setValue((int)m_currentFrame->m_frameSize.x());
+        HeightSpin->setValue((int)m_currentFrame->m_frameSize.y());
         emit valueChanged(m_currentFrame->m_framePosition, m_currentFrame->m_frameSize);
     }
     else
