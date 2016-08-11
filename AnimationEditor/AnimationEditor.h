@@ -25,7 +25,7 @@ class AnimationEditor : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit AnimationEditor(QWidget *parent = 0);    
+    explicit AnimationEditor(QWidget *parent = 0);
 public slots:
     void createNewProject();
     void openProject();
