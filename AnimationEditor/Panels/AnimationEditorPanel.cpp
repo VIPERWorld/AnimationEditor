@@ -3,6 +3,7 @@
 #include "InputBoxesPanel.h"
 #include <QGraphicsPixmapItem>
 #include <QMouseEvent>
+#include <iostream>
 
 AnimationEditorPanel::AnimationEditorPanel(QMainWindow *parent, AnimationsPanel *animationsPanel, InputBoxesPanel* inputBoxesPanel)
 {
@@ -14,6 +15,7 @@ AnimationEditorPanel::AnimationEditorPanel(QMainWindow *parent, AnimationsPanel 
     connect(animationsPanel, &AnimationsPanel::currentAnimationChanged, this, &AnimationEditorPanel::updateSpriteSheet);
     connect(inputBoxesPanel, &InputBoxesPanel::valueChanged, this, &AnimationEditorPanel::updateFrameRectangle);
     connect(animationEditorView, &AnimationEditorView::mouseMoved, this, &AnimationEditorPanel::updateCords);
+    connect(animationEditorView, &AnimationEditorView::itemPositionChanged, inputBoxesPanel, &InputBoxesPanel::updatePosition);
     auto layout = new QGridLayout(this);
     layout->addWidget(animationEditorLabel, 0, 0, 1, 2, Qt::AlignCenter);
     layout->addWidget(editorCords, 0, 2, 1, 1, Qt::AlignRight);
@@ -29,53 +31,50 @@ void AnimationEditorPanel::updateSpriteSheet(Animation *animation)
         if (spriteSheet)
         {
             if (m_actualSpriteSheet)
-            {
                 animationEditorScene->removeItem(m_actualSpriteSheet);
-                m_actualSpriteSheet = animationEditorScene->addPixmap(*spriteSheet);
-            }
             else
-            {
                 animationEditorScene->clear();
-                m_actualSpriteSheet = animationEditorScene->addPixmap(*spriteSheet);
-            }
+            m_actualSpriteSheet = animationEditorScene->addPixmap(*spriteSheet);
         }
         else
         {
             if (m_actualSpriteSheet)
                 animationEditorScene->removeItem(m_actualSpriteSheet);
+            if(m_actualFrameRectangle)
+                animationEditorScene->removeItem(m_actualFrameRectangle);
+            m_actualFrameRectangle = nullptr;
             m_actualSpriteSheet = nullptr;
-            animationEditorView->setTrackedItem(nullptr);
             animationEditorScene->clear();
         }
     }
 
-    animationEditorView->repaint();
+
+    animationEditorScene->update(animationEditorScene->sceneRect());
 }
 
 void AnimationEditorPanel::updateFrameRectangle(QVector2D pos, QVector2D size)
 {
-    if(pos.x() != 0 || pos.y() != 0 && (size.x() != 0 && size.y() != 0))
+    if(m_actualSpriteSheet)
     {
-        if (m_actualFrameRectangle)
+        if (size.x() != 0 && size.y() != 0)
         {
-            animationEditorScene->removeItem(m_actualFrameRectangle);
-            m_actualFrameRectangle = animationEditorScene->addRect(
-                    QRectF(QPointF(pos.x(), pos.y()), QPointF(size.x(), size.y())), QPen(QColor(255, 0, 0, 200)));
-        } else
-            m_actualFrameRectangle = animationEditorScene->addRect(
-                    QRectF(QPointF(pos.x(), pos.y()), QPointF(size.x(), size.y())), QPen(QColor(255, 0, 0, 200)));
+            if (m_actualFrameRectangle)
+                animationEditorScene->removeItem(m_actualFrameRectangle);
 
-        m_actualFrameRectangle->setFlag(QGraphicsItem::ItemIsMovable);
+            m_actualFrameRectangle = animationEditorScene->addRect(
+                    QRectF(QPointF(pos.x(), pos.y()), QSizeF(size.x(), size.y())), QPen(QColor(255, 0, 0, 200)));
+        }
+        else
+        {
+            if (m_actualFrameRectangle)
+                animationEditorScene->removeItem(m_actualFrameRectangle);
+            m_actualFrameRectangle = nullptr;
+        }
+        animationEditorView->setTrackedItem(m_actualFrameRectangle);
+        animationEditorScene->update(animationEditorScene->sceneRect());
     }
     else
-    {
-        if(m_actualFrameRectangle)
-            animationEditorScene->removeItem(m_actualFrameRectangle);
-        m_actualFrameRectangle = nullptr;
-    }
-
-    animationEditorView->setTrackedItem(m_actualFrameRectangle);
-    animationEditorView->repaint();
+        animationEditorScene->clear();
 }
 
 void AnimationEditorPanel::updateCords(QVector2D pos)

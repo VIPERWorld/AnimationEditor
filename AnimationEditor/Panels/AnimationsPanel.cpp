@@ -84,6 +84,7 @@ AnimationsPanel::AnimationsPanel(QWidget* parent = 0) :
     //Set spritesheet button
     setSpriteSheetButton = new QPushButton("Set SpriteSheet", this);
     connect(setSpriteSheetButton, &QPushButton::released, this, &AnimationsPanel::setSpriteSheet);
+    setSpriteSheetButton->setEnabled(false);
 
     auto *layout = new QGridLayout(this);
     layout->addWidget(animationsLabel, 0, 0, 1, 6, Qt::AlignCenter);
@@ -93,7 +94,7 @@ AnimationsPanel::AnimationsPanel(QWidget* parent = 0) :
     layout->addWidget(downAnimationButton, 4, 3, 1, 1);
     layout->addWidget(deleteAnimationButton, 4, 4, 1, 2);
     layout->addWidget(spriteSheetLabel, 5, 0, 1, 3);
-    layout->addWidget(setSpriteSheetButton, 5, 1, 1, 3);
+    layout->addWidget(setSpriteSheetButton, 5, 3, 1, 3);
     setLayout(layout);
 
     setEnabled(false);
@@ -106,6 +107,7 @@ void AnimationsPanel::setEnabled(bool boolean)
     deleteAnimationButton->setEnabled(boolean);
     upAnimationButton->setEnabled(boolean);
     downAnimationButton->setEnabled(boolean);
+    setSpriteSheetButton->setEnabled(boolean);
 }
 
 Animation* AnimationsPanel::getCurrentAnimation()
@@ -183,6 +185,7 @@ void AnimationsPanel::setSpriteSheet()
         {
             m_currentAnimation->loadSpriteSheetFromFile(imagePath);
             emit currentAnimationChanged(m_currentAnimation);
+            spriteSheetLabel->setText(QFileInfo(imagePath).fileName());
         }
     }
 }

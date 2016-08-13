@@ -15,11 +15,8 @@ InputBoxesPanel::InputBoxesPanel(QMainWindow *parent, AnimationFramesPanel *fram
         }
         else
         {
-            XSpin->clear();
-            YSpin->clear();
-            WidthSpin->clear();
-            HeightSpin->clear();
             setEnabled(false);
+            updateValues();
         }
     });
 
@@ -30,10 +27,8 @@ InputBoxesPanel::InputBoxesPanel(QMainWindow *parent, AnimationFramesPanel *fram
     connect(XSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val)
     {
         if(m_currentFrame)
-        {
             m_currentFrame->m_framePosition.setX(val);
-            updateValues();
-        }
+        updateValues();
     });
     XSpin->setEnabled(false);
 
@@ -43,10 +38,8 @@ InputBoxesPanel::InputBoxesPanel(QMainWindow *parent, AnimationFramesPanel *fram
     YSpin->setMinimum(-99999);
     connect(YSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val){
         if(m_currentFrame)
-        {
             m_currentFrame->m_framePosition.setY(val);
-            updateValues();
-        }
+        updateValues();
     });
     YSpin->setEnabled(false);
 
@@ -56,10 +49,8 @@ InputBoxesPanel::InputBoxesPanel(QMainWindow *parent, AnimationFramesPanel *fram
     WidthSpin->setMinimum(-99999);
     connect(WidthSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val){
         if(m_currentFrame)
-        {
             m_currentFrame->m_frameSize.setX(val);
-            updateValues();
-        }
+        updateValues();
     });
     WidthSpin->setEnabled(false);
 
@@ -70,10 +61,8 @@ InputBoxesPanel::InputBoxesPanel(QMainWindow *parent, AnimationFramesPanel *fram
     connect(HeightSpin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int val)
     {
         if (m_currentFrame)
-        {
             m_currentFrame->m_frameSize.setY(val);
-            updateValues();
-        }
+        updateValues();
     });
     HeightSpin->setEnabled(false);
 
@@ -117,4 +106,10 @@ void InputBoxesPanel::setEnabled(bool boolean)
     HeightSpin->setEnabled(boolean);
 }
 
+void InputBoxesPanel::updatePosition(QVector2D pos)
+{
+    if(m_currentFrame)
+        m_currentFrame->m_framePosition = pos;
+    updateValues();
+}
 

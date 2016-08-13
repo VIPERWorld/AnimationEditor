@@ -14,14 +14,14 @@ public:
     void setTrackedItem(QGraphicsItem*);
 signals:
     void mouseMoved(QVector2D);
-    void itemMoved(QGraphicsItem*);
+    void itemPositionChanged(QVector2D);
 protected:
     virtual void mouseMoveEvent(QMouseEvent*);
-    virtual void dragEnterEvent(QDragEnterEvent*);
-    virtual void dragMoveEvent(QDragMoveEvent*);
-    virtual void dragLeaveEvent(QDragLeaveEvent*);
+    virtual void mousePressEvent(QMouseEvent*);
+    virtual void mouseReleaseEvent(QMouseEvent*);
 
     QGraphicsItem *trackedItem{nullptr};
+    QPoint lastMousePosition;
     bool isDragging{false};
 };
 

@@ -11,6 +11,8 @@ class InputBoxesPanel : public QWidget
 public:
     InputBoxesPanel(QMainWindow *parent, AnimationFramesPanel *framesPanel);
     void setEnabled(bool);
+public slots:
+    void updatePosition(QVector2D);
 signals:
     void valueChanged(QVector2D, QVector2D);
 private:
