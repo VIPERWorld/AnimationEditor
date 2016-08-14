@@ -18,12 +18,12 @@ void AnimationEditorView::mouseMoveEvent(QMouseEvent *event)
 {
     if(isDragging && trackedItem)
     {
-        QPointF newMousePosition = event->pos();
+        QPointF newMousePosition = mapToScene(event->pos());
         QPointF diff = newMousePosition - lastMousePosition;
         emit itemPositionChanged(QVector2D((float)diff.x(), (float)diff.y()));
         lastMousePosition = newMousePosition;
     }
-    emit mouseMoved(QVector2D(event->x(), event->y()));
+    emit mouseMoved(QVector2D(mapToScene(event->x(), event->y())));
     QGraphicsView::mouseMoveEvent(event);
 }
 
@@ -32,10 +32,10 @@ void AnimationEditorView::mousePressEvent(QMouseEvent *event)
 {
     if(trackedItem)
     {
-        if(trackedItem->boundingRect().contains(event->pos()))
+        if(trackedItem->boundingRect().contains(mapToScene(event->pos())))
         {
             isDragging = true;
-            lastMousePosition = event->pos();
+            lastMousePosition = mapToScene(event->pos());
         }
     }
     QGraphicsView::mousePressEvent(event);
