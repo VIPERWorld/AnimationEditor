@@ -109,7 +109,7 @@ void InputBoxesPanel::setEnabled(bool boolean)
 void InputBoxesPanel::updatePosition(QVector2D pos)
 {
     if(m_currentFrame)
-        m_currentFrame->m_framePosition = pos;
+        m_currentFrame->m_framePosition += pos;
     updateValues();
 }
 

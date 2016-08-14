@@ -11,7 +11,7 @@ class AnimationEditorView : public QGraphicsView
     Q_OBJECT;
 public:
     explicit AnimationEditorView(QWidget*);
-    void setTrackedItem(QGraphicsItem*);
+    void setTrackedItem(QGraphicsRectItem*);
 signals:
     void mouseMoved(QVector2D);
     void itemPositionChanged(QVector2D);
@@ -20,8 +20,8 @@ protected:
     virtual void mousePressEvent(QMouseEvent*);
     virtual void mouseReleaseEvent(QMouseEvent*);
 
-    QGraphicsItem *trackedItem{nullptr};
-    QPoint lastMousePosition;
+    QGraphicsRectItem *trackedItem{nullptr};
+    QPointF lastMousePosition;
     bool isDragging{false};
 };
 

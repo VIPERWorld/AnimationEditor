@@ -11,6 +11,7 @@ AnimationEditorPanel::AnimationEditorPanel(QMainWindow *parent, AnimationsPanel 
     animationEditorScene = new QGraphicsScene(this);
     animationEditorView = new AnimationEditorView(this);
     animationEditorView->setScene(animationEditorScene);
+    animationEditorView->setStyleSheet("background: transparent");
     editorCords = new QLabel("X: Y: ", this);
     connect(animationsPanel, &AnimationsPanel::currentAnimationChanged, this, &AnimationEditorPanel::updateSpriteSheet);
     connect(inputBoxesPanel, &InputBoxesPanel::valueChanged, this, &AnimationEditorPanel::updateFrameRectangle);
@@ -48,7 +49,6 @@ void AnimationEditorPanel::updateSpriteSheet(Animation *animation)
         }
     }
 
-
     animationEditorScene->update(animationEditorScene->sceneRect());
 }
 
@@ -60,9 +60,8 @@ void AnimationEditorPanel::updateFrameRectangle(QVector2D pos, QVector2D size)
         {
             if (m_actualFrameRectangle)
                 animationEditorScene->removeItem(m_actualFrameRectangle);
-
             m_actualFrameRectangle = animationEditorScene->addRect(
-                    QRectF(QPointF(pos.x(), pos.y()), QSizeF(size.x(), size.y())), QPen(QColor(255, 0, 0, 200)));
+                    QRectF(pos.x(), pos.y(), size.x(), size.y()), QPen(QColor(255, 0, 0, 200)));
         }
         else
         {
